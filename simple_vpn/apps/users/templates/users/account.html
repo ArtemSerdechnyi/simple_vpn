@@ -17,6 +17,7 @@
         {{ site.name }} :
         <form method="post"
               action="{% url 'core:parse3'  name=site.name netloc=site.netloc path=site.path %}"
+              target="_blank"
               style="display:inline;">
 
             {% csrf_token %}
@@ -25,17 +26,21 @@
             <input type="hidden" name="site.netloc" value={{ site.netloc }}>
             <input type="hidden" name="site.path" value={{ site.path }}>
             <input type="hidden" name="site.query" value={{ site.query }}>
-            <a href="#" onclick="submitClosestForm(this); return false;">{{ site.origin_url }}</a>
+            <a href="#"
+               onclick="submitClosestForm(this); return false;"
+               onmousedown="if(event.button == 0 || event.button == 1) { submitClosestForm(this); return false; }"
+
+            >{{ site.origin_url }}</a>
         </form>
 
         <form method="post" action="{% url 'users:delete_site' pk=site.pk %}" style="display:inline;">
-                {% csrf_token %}
-                <button type="submit">Delete</button>
-            </form>
+            {% csrf_token %}
+            <button type="submit">Delete</button>
+        </form>
 
-            <form action="{% url 'users:statistics' pk=site.pk %}" style="display:inline;">
-                <button type="submit">Statistic</button>
-            </form>
+        <form action="{% url 'users:statistics' pk=site.pk %}" style="display:inline;">
+            <button type="submit">Statistic</button>
+        </form>
 
         </form>
     </li>
@@ -59,15 +64,5 @@
     {% csrf_token %}
     <button type="submit" class="btn btn-danger">Logout</button>
 </form>
-
-
-<h3>Create a New Site js</h3>
-<form method="post" action="{% url 'users:create_site' %}">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <a href="#" onclick="submitClosestForm(this); return false;">Create Site</a>
-</form>
-
-
 
 {% endblock %}
