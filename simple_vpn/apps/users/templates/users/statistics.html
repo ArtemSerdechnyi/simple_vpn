@@ -1,0 +1,12 @@
+{% extends 'users/base.html' %}
+
+{% block content %}
+    <h2>Statistics for {{ site.name }}</h2>
+
+    <p><strong>Total Requests:</strong> {{ statistics.total_requests }}</p>
+    <p><strong>Total Data Sent:</strong> {{ statistics.total_data_sent }} bytes</p>
+    <p><strong>Total Data Received:</strong> {{ statistics.total_data_received }} bytes</p>
+
+    <br>
+    <a href="{% url 'users:account' %}">Back to Account</a>
+{% endblock %}

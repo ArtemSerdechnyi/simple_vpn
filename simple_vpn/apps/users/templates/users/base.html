@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Add your common head elements here -->
+
+</head>
+<body>
+    <header>
+        <!-- Add your common header elements here -->
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <!-- Add your common footer elements here -->
+    </footer>
+    <script src="{% static 'js/submitClosestForm.js' %}"></script>
+</body>
+</html>

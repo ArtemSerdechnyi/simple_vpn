@@ -1,0 +1,73 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block content %}
+<h2>Welcome to your user account page {{ user.username }}</h2>
+
+<div>
+    <p><strong>Username:</strong> {{ user.username }}</p>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    <p><strong>Date Joined:</strong> {{ user.date_joined|date:"F j, Y H:i:s" }}</p>
+</div>
+
+<h3>Your Sites</h3>
+<ul>
+    {% for site in user_sites %}
+    <li>
+        {{ site.name }} :
+        <form method="post"
+              action="{% url 'core:parse3'  name=site.name netloc=site.netloc path=site.path %}"
+              style="display:inline;">
+
+            {% csrf_token %}
+            <input type="hidden" name="site.name" value={{ site.name }}>
+            <input type="hidden" name="site.origin_url" value={{ site.origin_url }}>
+            <input type="hidden" name="site.netloc" value={{ site.netloc }}>
+            <input type="hidden" name="site.path" value={{ site.path }}>
+            <input type="hidden" name="site.query" value={{ site.query }}>
+            <a href="#" onclick="submitClosestForm(this); return false;">{{ site.origin_url }}</a>
+        </form>
+
+        <form method="post" action="{% url 'users:delete_site' pk=site.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit">Delete</button>
+            </form>
+
+            <form action="{% url 'users:statistics' pk=site.pk %}" style="display:inline;">
+                <button type="submit">Statistic</button>
+            </form>
+
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+
+<h3>Create a New Site</h3>
+<form method="post" action="{% url 'users:create_site' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Create Site</button>
+</form>
+
+<h3>Settings</h3>
+<form action="{% url 'users:user_settings' user.id %}">
+    <button type="submit">Edit Settings</button>
+</form>
+
+<br>
+<form method="post" action="{% url 'users:logout' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Logout</button>
+</form>
+
+
+<h3>Create a New Site js</h3>
+<form method="post" action="{% url 'users:create_site' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <a href="#" onclick="submitClosestForm(this); return false;">Create Site</a>
+</form>
+
+
+
+{% endblock %}
