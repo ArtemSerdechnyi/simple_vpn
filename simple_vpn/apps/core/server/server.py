@@ -33,25 +33,17 @@ class ProxyServer:
     async def static_request(self, request: web.Request):
         url = request.match_info.get("url")
         query = get_query_from_url(str(request.url))
-        url_with_parameters = add_GET_query_params_to_url(url, query)
+        url = add_GET_query_params_to_url(url, query)
         if not url:
             return web.Response(text='Missing "url" parameter', status=400)
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
-                        url_with_parameters,
+                        url,
                         headers=self.get_necessary_headers(request)
                 ) as response:
                     body = await response.read()
                     status = response.status
-
-                if status != 200:
-                    async with session.get(
-                            url_with_parameters,
-                    ) as response:
-                        body = await response.read()
-                        status = response.status
-
 
         except aiohttp.ClientError as ce:
             return web.Response(status=500, text=f"ClientError: {ce}")
