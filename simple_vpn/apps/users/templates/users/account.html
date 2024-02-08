@@ -21,6 +21,7 @@
               style="display:inline;">
 
             {% csrf_token %}
+            <input type="hidden" name="site.pk" value={{ site.pk }}>
             <input type="hidden" name="site.name" value={{ site.name }}>
             <input type="hidden" name="site.origin_url" value={{ site.origin_url }}>
             <input type="hidden" name="site.netloc" value={{ site.netloc }}>

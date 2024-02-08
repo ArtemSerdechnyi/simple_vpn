@@ -1,17 +1,22 @@
+import sys
 from typing import Iterable
 from urllib.parse import urlparse, urljoin
+
+from aiohttp import ClientResponse
 from multidict import CIMultiDict
 
 import aiohttp
 import bs4
 from bs4 import Tag
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import QueryDict
+from django.http import QueryDict, Http404
 
 from django.conf import settings
 
 from common_utils.url_utils import get_path_from_url, get_query_from_url, add_GET_query_params_to_url, \
     remove_GET_query_params_from_url, get_home_site_url, get_netloc_from_url, merge_url_path_query
+
+from ..users.models import Site, Request, User
 
 
 class RequestParameters:
@@ -19,6 +24,7 @@ class RequestParameters:
     def __init__(self, request: WSGIRequest):
         self.request = request
         additional_param: QueryDict = request.POST
+        self.site_pk = additional_param.get('site.pk')
         self.my_site_netloc = urlparse(request.build_absolute_uri()).netloc
         self.name = additional_param.get('site.name')
         self.target_url = additional_param.get('site.origin_url')
@@ -33,18 +39,41 @@ def filter_non_empty_headers(headers: CIMultiDict) -> CIMultiDict:
     return CIMultiDict([(key, value) for key, value in headers.items() if value.strip()])
 
 
-async def send_request(rp: RequestParameters) -> tuple[str, int]:
+def get_request_size(url, headers):
+    """
+    Calculate the size of the HTTP GET request in bytes.
+    """
+    request_size = sys.getsizeof(url.encode('utf-8'))
+    for header_name, header_value in headers.items():
+        request_size += sys.getsizeof(header_name.encode('utf-8')) + sys.getsizeof(header_value.encode('utf-8'))
+    return request_size
+
+
+async def get_response_size(response: ClientResponse):
+    """
+    Calculate the size of the HTTP response in bytes.
+    """
+    response_size = len(await response.read())
+    return response_size
+
+
+async def send_request(rp: RequestParameters) -> tuple[str, int, int, int]:
+    """
+    Send an HTTP GET request and return the response data along with request and response sizes.
+    """
     headers = rp.headers
     name = rp.name
     target_url = rp.target_url
-
     headers = filter_non_empty_headers(headers)
     url = get_aiohttp_url(name, target_url)
+
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.get(url) as response:
             text = await response.text()
             status = response.status
-            return text, status
+            requests_size = get_request_size(url, headers)
+            response_size = await get_response_size(response)
+    return text, status, requests_size, response_size
 
 
 def get_aiohttp_url(name, target_url):
@@ -148,6 +177,7 @@ def find_all_tags_with_some_attr(
             if tag.has_attr(attr):
                 yield tag, attr
 
+
 def filter_tag(tag: Tag, attr, original_netloc) -> Tag | None:
     url = tag[attr]
     netloc = get_netloc_from_url(url)
@@ -209,3 +239,29 @@ def process_soup(
                                                                        "/static/js/submitClosestForm.js")
     soup = add_js_to_end_of_page(soup, submit_closest_form_path)
     return soup
+
+
+async def get_site(rp: RequestParameters, user: User) -> Site:
+    """
+    Retrieves a site object asynchronously based on the provided RequestParameters and User.
+    """
+    try:
+        site = await Site.objects.aget(
+            pk=rp.site_pk,
+            user=user,
+        )
+    except Site.DoesNotExist:
+        raise Http404("Site does not exist or you don't have permission to access it.")
+    return site
+
+
+async def create_request(rp: RequestParameters, user: User, data_sent, data_received) -> Request:
+    """
+    Creates a new request asynchronously and returns the associated Request object.
+    """
+    return await Request.objects.acreate(
+        user=user,
+        site=await get_site(rp, user),
+        data_sent=data_sent,
+        data_received=data_received,
+    )
