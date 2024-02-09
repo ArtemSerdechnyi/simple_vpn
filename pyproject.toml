@@ -9,10 +9,9 @@ readme = "README.md"
 python = "^3.11"
 django = "^5.0.1"
 aiohttp = "^3.9.1"
-djangorestframework = "^3.14.0"
-django-allauth = "^0.60.1"
 django-debug-toolbar = "^4.2.0"
 beautifulsoup4 = "^4.12.3"
+environs = "^10.3.0"
 
 
 [build-system]
