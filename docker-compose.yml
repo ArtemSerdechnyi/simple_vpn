@@ -12,5 +12,7 @@ services:
       - .:/code
     command: >
       sh -c "
+      python simple_vpn/manage.py makemigrations &&
+      python simple_vpn/manage.py migrate &&
       python simple_vpn/manage.py runserver 0.0.0.0:8000 --noreload
       "
