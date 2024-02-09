@@ -11,14 +11,6 @@ WORKDIR /code
 # Copy requirements.txt file
 COPY requirements.txt /code/
 
-# Copy poetry files
-#COPY poetry.lock pyproject.toml /code/
-#
-## Install Poetry
-#RUN python -m pip install --no-cache-dir poetry==1.6.1 \
-#    && poetry config virtualenvs.in-project true \
-#    && poetry install --no-interaction --no-ansi
-
 # Install project dependencies using pip
 RUN pip install --no-cache-dir -r requirements.txt
 
